@@ -68,7 +68,7 @@ public class GameService {
                 String.format("No game with the given id: %s!", gameId)));
 
         if ((result.getActualPlayersAddress() == null && (clientIp).equals(result.getFirstPlayersAddress()))
-            || (!(clientIp).equals(result.getActualPlayersAddress()) && result.getActualPlayersAddress() != null)) {
+            || (!clientIp.equals(result.getActualPlayersAddress()) && result.getActualPlayersAddress() != null)) {
             throw new IllegalArgumentException("It's not your turn!");
         }
 
@@ -110,6 +110,10 @@ public class GameService {
 
         if (result.getSecondPlayersAddress() == null) {
             result.setActualPlayersAddress(null);
+        } else if (result.getActualPlayersAddress().equals(result.getFirstPlayersAddress())) {
+            result.setActualPlayersAddress(result.getSecondPlayersAddress());
+        } else {
+            result.setActualPlayersAddress(result.getFirstPlayersAddress());
         }
 
         final String serverHostname = InetAddress.getLocalHost().getHostName();
