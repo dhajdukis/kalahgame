@@ -43,7 +43,7 @@ Build:
 
 Run the application:
 
-`java -jar build/build/libs/kalah-spring-boot-1.0.0.jar`
+`java -jar build/libs/kalah-spring-boot-1.0.0.jar`
 
 ## 2. Creation of the game:
 
