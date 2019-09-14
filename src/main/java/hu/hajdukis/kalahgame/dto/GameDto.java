@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class GameDto {
     private String id;
-    private String url;
+    private String uri;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map status;
 
-    public GameDto(final String id, final String url, final Map status) {
+    public GameDto(final String id, final String uri, final Map status) {
         this.id = id;
-        this.url = url;
+        this.uri = uri;
         this.status = status;
     }
 
@@ -24,12 +24,12 @@ public class GameDto {
         this.id = id;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUri() {
+        return uri;
     }
 
-    public void setUrl(final String url) {
-        this.url = url;
+    public void setUri(final String uri) {
+        this.uri = uri;
     }
 
     public Map getStatus() {
