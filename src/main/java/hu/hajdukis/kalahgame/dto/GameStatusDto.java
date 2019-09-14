@@ -7,16 +7,19 @@ public class GameStatusDto {
     private Map<Integer, Integer> statusMap;
     private Integer numberOfStones;
     private final boolean isFirstPlayer;
+    private boolean isOneMoreRound;
 
     public GameStatusDto(
             final Integer startPit,
             final Map<Integer, Integer> statusMap,
             final Integer numberOfStones,
-            final Boolean isFirstPlayer) {
+            final Boolean isFirstPlayer,
+            final boolean isOneMoreRound) {
         this.startPit = startPit;
         this.statusMap = statusMap;
         this.numberOfStones = numberOfStones;
         this.isFirstPlayer = isFirstPlayer;
+        this.isOneMoreRound = isOneMoreRound;
     }
 
     public void setStartPit(final Integer startPit) {
@@ -45,6 +48,14 @@ public class GameStatusDto {
 
     public boolean isFirstPlayer() {
         return isFirstPlayer;
+    }
+
+    public void setOneMoreRound(final boolean isOneMoreRound) {
+        this.isOneMoreRound = isOneMoreRound;
+    }
+
+    public boolean isOneMoreRound() {
+        return isOneMoreRound;
     }
 }
 

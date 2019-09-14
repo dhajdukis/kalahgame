@@ -98,7 +98,8 @@ public class GameService {
         final GameStatusDto gameStatusDto = new GameStatusDto(pitId,
                                                               statusMap,
                                                               numberOfStones,
-                                                              clientIp.equals(result.getFirstPlayersAddress()));
+                                                              clientIp.equals(result.getFirstPlayersAddress()),
+                                                              false);
 
         statusMap = stepsIterator(gameStatusDto).getStatusMap();
 
@@ -139,6 +140,10 @@ public class GameService {
             numberOfStones--;
 
             if (numberOfStones == 0) {
+                if ((gameStatusDto.isFirstPlayer() && pitId == 7) || !gameStatusDto.isFirstPlayer() && pitId == 14) {
+                    gameStatusDto.setOneMoreRound(true);
+                }
+
                 if (statusMap.get(pitId) == 1 && ((gameStatusDto.isFirstPlayer() && pitId < 7)
                                                   || (!gameStatusDto.isFirstPlayer() && pitId > 7 && pitId != 14))) {
                     statusMap.replace(pitId, statusMap.get(14 - pitId) + 1);

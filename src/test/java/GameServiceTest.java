@@ -200,7 +200,7 @@ class GameServiceTest {
         final Map<Integer, Integer> statusMap = status.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(
                 e.getKey()), e -> Integer.parseInt(e.getValue())));
 
-        final GameStatusDto gameStatusDto = new GameStatusDto(6, statusMap, 8, true);
+        final GameStatusDto gameStatusDto = new GameStatusDto(6, statusMap, 8, true, false);
         final GameStatusDto resultDto = gameService.stepsIterator(gameStatusDto);
         Assertions.assertEquals(8, resultDto.getStatusMap().get(1));
         Assertions.assertEquals(6, resultDto.getStatusMap().get(2));
@@ -217,5 +217,30 @@ class GameServiceTest {
         Assertions.assertEquals(7, resultDto.getStatusMap().get(12));
         Assertions.assertEquals(0, resultDto.getStatusMap().get(13));
         Assertions.assertEquals(0, resultDto.getStatusMap().get(14));
+    }
+
+    @Test
+    void oneMoreRound() {
+        final Map<String, String> status = gameService.getStartMap();
+        final Map<Integer, Integer> statusMap = status.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(
+                e.getKey()), e -> Integer.parseInt(e.getValue())));
+        final GameStatusDto gameStatusDto = new GameStatusDto(1, statusMap, 6, true, false);
+        final GameStatusDto resultDto = gameService.stepsIterator(gameStatusDto);
+        Assertions.assertEquals(0, resultDto.getStatusMap().get(1));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(2));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(3));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(4));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(5));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(6));
+        Assertions.assertEquals(1, resultDto.getStatusMap().get(7));
+
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(8));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(9));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(10));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(11));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(12));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(13));
+        Assertions.assertEquals(0, resultDto.getStatusMap().get(14));
+        Assertions.assertTrue(resultDto.isOneMoreRound());
     }
 }
