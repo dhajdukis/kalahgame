@@ -31,27 +31,22 @@ public class GameService {
     private String serverPort;
 
     @Transactional(rollbackFor = Exception.class)
-    public GameDto startGame(final String clientIp) {
+    public GameDto startGame(final String clientIp) throws IOException {
 
         final Map<String, String> startMap = getStartMap();
 
-        final Result result;
-        try {
-            result = new Result(clientIp, clientIp, statusJson(startMap));
+        final Result result = new Result(clientIp, clientIp, statusJson(startMap));
 
-            final String savedEntityId = resultRepository.save(result).getId().toString();
+        final String savedEntityId = resultRepository.save(result).getId().toString();
 
-            return new GameDto(savedEntityId,
-                               "http://"
-                               + InetAddress.getLocalHost().getHostName()
-                               + ":"
-                               + serverPort
-                               + "/games/"
-                               + savedEntityId,
-                               null);
-        } catch (final IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        return new GameDto(savedEntityId,
+                           "http://"
+                           + InetAddress.getLocalHost().getHostName()
+                           + ":"
+                           + serverPort
+                           + "/games/"
+                           + savedEntityId,
+                           null);
     }
 
     public Map<String, String> getStartMap() {
@@ -67,7 +62,7 @@ public class GameService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public GameDto makeAMove(final Integer gameId, final Integer pitId, final String clientIp) {
+    public GameDto makeAMove(final Integer gameId, final Integer pitId, final String clientIp) throws IOException {
 
         final Result result = resultRepository.findById(gameId.longValue()).orElseThrow(() -> new NoResultException(
                 String.format("No game with the given id: %s!", gameId)));
@@ -89,12 +84,7 @@ public class GameService {
             throw new IllegalArgumentException("The selected pit is your opponent's pit!");
         }
 
-        Map<Integer, Integer> statusMap;
-        try {
-            statusMap = getStatusMap(result);
-        } catch (final IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        Map<Integer, Integer> statusMap = getStatusMap(result);
 
         if (isGameOver(statusMap)) {
             throw new IllegalArgumentException("Your opponent has already won the game!");
@@ -115,17 +105,14 @@ public class GameService {
         final Map<Integer, String> resultMap = statusMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                                                                                                       e -> Integer.toString(
                                                                                                               e.getValue())));
-        final String serverHostname;
-        try {
-            result.setStatusJson(statusJson(resultMap));
-            serverHostname = InetAddress.getLocalHost().getHostName();
-        } catch (final IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+
+        result.setStatusJson(statusJson(resultMap));
+
         if (result.getSecondPlayersAddress() == null) {
             result.setActualPlayersAddress(null);
         }
 
+        final String serverHostname = InetAddress.getLocalHost().getHostName();
         return new GameDto(gameId.toString(),
                            "http://" + serverHostname + ":" + serverPort + "/games" + "/id",
                            resultMap);
