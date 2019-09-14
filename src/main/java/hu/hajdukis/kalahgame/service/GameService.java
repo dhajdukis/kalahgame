@@ -31,21 +31,27 @@ public class GameService {
     private String serverPort;
 
     @Transactional(rollbackFor = Exception.class)
-    public GameDto startGame(final String clientIp) throws IOException {
+    public GameDto startGame(final String clientIp) {
 
         final Map<String, String> startMap = getStartMap();
 
-        final Result result = new Result(clientIp, clientIp, statusJson(startMap));
-        final String savedEntityId = resultRepository.save(result).getId().toString();
+        final Result result;
+        try {
+            result = new Result(clientIp, clientIp, statusJson(startMap));
 
-        return new GameDto(savedEntityId,
-                           "http://"
-                           + InetAddress.getLocalHost().getHostName()
-                           + ":"
-                           + serverPort
-                           + "/games/"
-                           + savedEntityId,
-                           null);
+            final String savedEntityId = resultRepository.save(result).getId().toString();
+
+            return new GameDto(savedEntityId,
+                               "http://"
+                               + InetAddress.getLocalHost().getHostName()
+                               + ":"
+                               + serverPort
+                               + "/games/"
+                               + savedEntityId,
+                               null);
+        } catch (final IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public Map<String, String> getStartMap() {
@@ -88,6 +94,10 @@ public class GameService {
             statusMap = getStatusMap(result);
         } catch (final IOException e) {
             throw new RuntimeException(e.getMessage());
+        }
+
+        if (isGameOver(statusMap)) {
+            throw new IllegalArgumentException("Your opponent has already won the game!");
         }
 
         if (statusMap.get(pitId) == 0) {
@@ -157,6 +167,11 @@ public class GameService {
             gameStatusDto = stepsIterator(gameStatusDto);
             return gameStatusDto;
         }
+    }
+
+    private boolean isGameOver(final Map<Integer, Integer> statusMap) {
+        return statusMap.entrySet().stream().noneMatch(e -> e.getValue() != 0 && e.getKey() < 7)
+               || statusMap.entrySet().stream().noneMatch(e -> e.getValue() != 0 && e.getKey() > 7 && e.getKey() < 14);
     }
 
     private byte[] statusJson(final Map status) throws JsonProcessingException {

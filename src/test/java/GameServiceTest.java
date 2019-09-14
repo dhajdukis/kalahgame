@@ -1,10 +1,12 @@
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.hajdukis.kalahgame.dto.GameStatusDto;
 import hu.hajdukis.kalahgame.entity.Result;
 import hu.hajdukis.kalahgame.repository.ResultRepository;
 import hu.hajdukis.kalahgame.service.GameService;
@@ -33,6 +35,13 @@ class GameServiceTest {
     @Test
     void getStartMap() {
 
+        final Map<String, String> referenceMap = getReferenceMap();
+
+        final Map<String, String> startMap = gameService.getStartMap();
+        Assertions.assertEquals(referenceMap, startMap);
+    }
+
+    private Map<String, String> getReferenceMap() {
         final Map<String, String> referenceMap = new LinkedHashMap<>();
         referenceMap.put("1", "6");
         referenceMap.put("2", "6");
@@ -48,9 +57,7 @@ class GameServiceTest {
         referenceMap.put("12", "6");
         referenceMap.put("13", "6");
         referenceMap.put("14", "0");
-
-        final Map<String, String> startMap = gameService.getStartMap();
-        Assertions.assertEquals(referenceMap, startMap);
+        return referenceMap;
     }
 
     @Test
@@ -80,9 +87,8 @@ class GameServiceTest {
         final Result result = new Result("firstPlayersIP", "firstPlayersIP", null);
         when(resultRepository.findById(1L)).thenReturn(Optional.of(result));
 
-        final Exception exception = Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> gameService.makeAMove(1, 15, "firstPlayersIP"));
+        final Exception exception = Assertions.assertThrows(IllegalArgumentException.class,
+                                                            () -> gameService.makeAMove(1, 15, "firstPlayersIP"));
         Assertions.assertEquals("PitId must be between '1' and '13'!", exception.getMessage());
     }
 
@@ -103,9 +109,8 @@ class GameServiceTest {
         final Result result = new Result("firstPlayersIP", "firstPlayersIP", null);
         when(resultRepository.findById(1L)).thenReturn(Optional.of(result));
 
-        final Exception exception = Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> gameService.makeAMove(1, 7, "firstPlayersIP"));
+        final Exception exception = Assertions.assertThrows(IllegalArgumentException.class,
+                                                            () -> gameService.makeAMove(1, 7, "firstPlayersIP"));
         Assertions.assertEquals("PitId cannot be '7'!", exception.getMessage());
     }
 
@@ -123,7 +128,7 @@ class GameServiceTest {
     @Test
     void the_selected_pit_is_empty() throws JsonProcessingException {
 
-        final Map<String, String> status = new LinkedHashMap<>();
+        final Map<String, String> status = gameService.getStartMap();
         status.put("1", "0");
 
         final ObjectMapper mapper = new ObjectMapper();
@@ -137,5 +142,80 @@ class GameServiceTest {
         final Exception exception = Assertions.assertThrows(IllegalArgumentException.class,
                                                             () -> gameService.makeAMove(1, 1, "firstPlayersIP"));
         Assertions.assertEquals("The selected pit: 1 is empty!", exception.getMessage());
+    }
+
+    @Test
+    void player1_has_won() throws JsonProcessingException {
+
+        final Map<String, String> status = gameService.getStartMap();
+        status.replace("1", "0");
+        status.replace("2", "0");
+        status.replace("3", "0");
+        status.replace("4", "0");
+        status.replace("5", "0");
+        status.replace("6", "0");
+
+        final ObjectMapper mapper = new ObjectMapper();
+        final byte[] bytes = mapper.writeValueAsBytes(status);
+
+        final Result result = new Result("firstPlayersIP", "firstPlayersIP", null);
+        result.setStatusJson(bytes);
+
+        when(resultRepository.findById(1L)).thenReturn(Optional.of(result));
+
+        final Exception exception = Assertions.assertThrows(IllegalArgumentException.class,
+                                                            () -> gameService.makeAMove(1, 1, "firstPlayersIP"));
+        Assertions.assertEquals("Your opponent has already won the game!", exception.getMessage());
+    }
+
+    @Test
+    void player2_has_won() throws JsonProcessingException {
+
+        final Map<String, String> status = gameService.getStartMap();
+        status.replace("8", "0");
+        status.replace("9", "0");
+        status.replace("10", "0");
+        status.replace("11", "0");
+        status.replace("12", "0");
+        status.replace("13", "0");
+
+        final ObjectMapper mapper = new ObjectMapper();
+        final byte[] bytes = mapper.writeValueAsBytes(status);
+
+        final Result result = new Result("firstPlayersIP", "firstPlayersIP", null);
+        result.setStatusJson(bytes);
+
+        when(resultRepository.findById(1L)).thenReturn(Optional.of(result));
+
+        final Exception exception = Assertions.assertThrows(IllegalArgumentException.class,
+                                                            () -> gameService.makeAMove(1, 1, "firstPlayersIP"));
+        Assertions.assertEquals("Your opponent has already won the game!", exception.getMessage());
+    }
+
+    @Test
+    void capture() {
+        final Map<String, String> status = gameService.getStartMap();
+        status.replace("1", "0");
+        status.replace("6", "8");
+        final Map<Integer, Integer> statusMap = status.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(
+                e.getKey()), e -> Integer.parseInt(e.getValue())));
+
+        final GameStatusDto gameStatusDto = new GameStatusDto(6, statusMap, 8, true);
+        final GameStatusDto resultDto = gameService.stepsIterator(gameStatusDto);
+        Assertions.assertEquals(8, resultDto.getStatusMap().get(1));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(2));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(3));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(4));
+        Assertions.assertEquals(6, resultDto.getStatusMap().get(5));
+        Assertions.assertEquals(0, resultDto.getStatusMap().get(6));
+        Assertions.assertEquals(1, resultDto.getStatusMap().get(7));
+
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(8));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(9));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(10));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(11));
+        Assertions.assertEquals(7, resultDto.getStatusMap().get(12));
+        Assertions.assertEquals(0, resultDto.getStatusMap().get(13));
+        Assertions.assertEquals(0, resultDto.getStatusMap().get(14));
     }
 }
