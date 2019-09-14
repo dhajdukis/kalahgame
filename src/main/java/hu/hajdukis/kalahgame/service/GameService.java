@@ -137,11 +137,11 @@ public class GameService {
 
             numberOfStones--;
 
-            //TODO: capture only from opponents pit
             if (numberOfStones == 0) {
-                if (statusMap.get(pitId) != 1 || ((!gameStatusDto.isFirstPlayer() || pitId != 7)
-                                                  && (gameStatusDto.isFirstPlayer() || pitId != 14))) {
+                if (statusMap.get(pitId) == 1 && ((gameStatusDto.isFirstPlayer() && pitId < 7)
+                                                  || (!gameStatusDto.isFirstPlayer() && pitId > 7 && pitId != 14))) {
                     statusMap.replace(pitId, statusMap.get(14 - pitId) + 1);
+                    statusMap.replace((14 - pitId), 0);
                 }
                 break;
             }
