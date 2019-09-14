@@ -59,7 +59,7 @@ Response Body:
 
 id: unique identifier of a game
   
-url: link to the game created
+uri: link to the game created
 
 
 ## 3. Make a move:
